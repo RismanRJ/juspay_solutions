@@ -1,75 +1,87 @@
-package NearestMeetingCell;
+import java.util.Arrays;
+import java.util.PriorityQueue;
+import java.util.Scanner;
 
-import java.util.*;
+class pair {
+    int node;
+    int distance;
 
-public class Solution {
-
-    public static int minimumWeight(int n, int[] edges, int C1, int C2) {
-        // Create directed graph from the array given in input
-        List<List<Integer>> graph = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            graph.add(new ArrayList<Integer>());
-        }
-        for (int i = 0; i < n; i++) {
-            if (edges[i] != -1) {
-                graph.get(i).add(edges[i]);
-            }
-        }
-        // Create two arrays A and B for storing min distance from C1 and C2
-        long[] A = new long[n];
-        long[] B = new long[n];
-        Arrays.fill(A, Long.MAX_VALUE);
-        Arrays.fill(B, Long.MAX_VALUE);
-        // Part 1 and Part 2 of Algo -> Implement a dijkstra function and call it for
-        // both arrays A and B
-        dijkstra(C1, graph, A);
-        dijkstra(C2, graph, B);
-        // Now comes Part 3 part of algo-> loop through and get node with min(A[i]+B[i])
-        int node = 0;
-        long dist = Long.MAX_VALUE;
-        for (int i = 0; i < n; i++) {
-            // if node is not accessible from any of them ignore it
-            if (A[i] == Long.MAX_VALUE || B[i] == Long.MAX_VALUE)
-                continue;
-            // sauravhathi
-            if (dist > A[i] + B[i]) {
-                dist = A[i] + B[i];
-                node = i;
-            }
-        }
-        if (dist == Long.MAX_VALUE)
-            return -1; // if no meeting point is found
-        return node;
+    pair(int node, int distance) {
+        this.node = node;
+        this.distance = distance;
     }
+}
 
-    private static void dijkstra(int start, List<List<Integer>> graph, long[] distances) {
-        PriorityQueue<Integer> pq = new PriorityQueue<>();
-        pq.offer(start);
-        distances[start] = 0;
-        while (!pq.isEmpty()) {
-            int curr = pq.poll();
-            for (int neighbor : graph.get(curr)) {
-                long distance = distances[curr] + 1; // all edges have same weight 1
-                if (distance < distances[neighbor]) {
-                    distances[neighbor] = distance;
-                    pq.offer(neighbor);
+public class nearestMeetingCell {
+    public static void dijikstra(int n, int[] Edges, int c, int[] wt) {
+
+        PriorityQueue<pair> q = new PriorityQueue<pair>((x, y) -> x.distance - y.node);
+        boolean vis[] = new boolean[n];
+
+        vis[c] = true; // --> marking that cell as visited
+
+        q.add(new pair(c, 0));  //--> starting cell has always weight ==> 0
+      
+        while (!q.isEmpty()) {
+            int dist = q.peek().distance; //--> calculatin the distance
+            int node = q.peek().node; // --> getting the node
+            q.remove();
+            wt[node] = dist; // update the distance to weighted array of given cell
+
+            // System.out.println("For cell-->"+ c);
+            // System.out.println(node +"-->" + wt[node]);
+
+            if (Edges[node] != -1) {   //--> check if is not an exit point
+                int adj = Edges[node];  // --> get the next connected node
+                if (!vis[adj]) {
+                    vis[adj]=true;
+                    q.add(new pair(adj, dist + 1));  // update the distance by 1 becaue it is an unweighted graph
                 }
             }
         }
     }
 
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        int n = scanner.nextInt();
-        int[] edges = new int[n];
-        for (int i = 0; i < n; i++) {
-            edges[i] = scanner.nextInt();
-        }
-        int C1 = scanner.nextInt();
-        int C2 = scanner.nextInt();
-        System.out.println(minimumWeight(n, edges, C1, C2));
+    public static int findNearestCell(int n, int[] Edges, int c1, int c2) {
+        int node = -1;
+        int[] cellWt1 = new int[n];
+        int[] cellWt2 = new int[n];
 
-        scanner.close();
+        Arrays.fill(cellWt1, -1);
+        Arrays.fill(cellWt2, -1);
+
+        dijikstra(n, Edges, c1, cellWt1);
+        dijikstra(n, Edges, c2, cellWt2);
+
+        int maxDist= Integer.MAX_VALUE;
+        for(int i=0;i<n;i++){
+            if(cellWt1[i]==-1|| cellWt2[i]==-1) continue;
+
+            int dist =  cellWt1[i]+cellWt2[i];
+            if(maxDist>dist){
+                maxDist=dist;  // --> update the max Distance
+                node=i;  // update the node
+            }
+        }
+        return node;
     }
 
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+        int Edges[] = new int[n];
+        for (int i = 0; i < n; i++)
+            Edges[i] = sc.nextInt();
+
+        int cell1 = sc.nextInt();
+        int cell2 = sc.nextInt();
+
+        int nearestNode = findNearestCell(n, Edges, cell1, cell2);
+
+        System.out.println("Nearest Meeting point between cell1 and cell 2 is -->" + nearestNode);
+        sc.close();
+    }
 }
+
+
+// Time complexity ==>  O(n)+ O(n) + O(n) --> O(n)
+//space complexity ==>  O(n)+ O(n) + O(n)  --> O(n)
