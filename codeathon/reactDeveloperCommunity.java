@@ -2,88 +2,67 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Scanner;
 
-
-public class reactDeveloperCommunity {
+public class reactCommunity {
 
     private static class Graph {
 
-        @SuppressWarnings("unused")
-        int val=0;
-        Map<Node,List<Node>> adj;
+        int val = 0;
+        HashMap<Integer, ArrayList<Integer>> adj; // --> storing adj list with correspponding to the members
 
         Graph() {
-           this.val =0;
             this.adj = new HashMap<>();
         }
 
-        public void addEdge(Node v1, Node v2) {
-            if (!adj.containsKey(v1)) {
-                adj.put(v1, new ArrayList<>());
+        public void addEdge(int edge1, int edge2) {
+            if (!adj.containsKey(edge1)) { // --> whether is key is present or not
+                adj.put(edge1, new ArrayList<>()); // --> if it is not present update the key with edg1 and assign a
+                                                   // empty List for adding edge 2
             }
-            if (!adj.containsKey(v2)) {
-                adj.put(v2, new ArrayList<>());
-            }
-            // Add the 'to' node to the list of neighbors for the 'from' node
-            adj.get(v1).add(v2);
+
+            adj.get(edge1).add(edge2); // --> add edge1 and edge 2 [ edge1 -->{edge2}]
         }
-    }
 
-    public static boolean isHeReacheB(Node src, Node des){
-
-        Queue<Node> q = new LinkedList<>();
-        HashSet<Node> vis = new HashSet<>();
-        q.add(src);
-
-        while (!q.isEmpty()) {
-            Node n = q.poll();
-            vis.add(n);
-
-            for(Node it : new Graph().adj.getOrDefault(n,new ArrayList<>())){
-                if(it==des)
-                return true;
-                if(!vis.contains(it)){
-                    vis.add(it);
-                    q.add(it);
+        public boolean isReachable(int src, int des, Graph g) {
+            Queue<Integer> q = new LinkedList<>();
+            HashSet<Integer> vis = new HashSet<>(); // visting check
+            vis.add(src);
+            q.add(src);
+            while (!q.isEmpty()) {
+                int node = q.poll();
+                if (node == des) // --> if A reaches B
+                    return true;
+                for (int it : g.adj.getOrDefault(node, new ArrayList<>())) { // else traverse through the list
+                    // If there is no list it will throw error --> so use getOrDefault
+                    if (!vis.contains(it)) {
+                        vis.add(it);
+                        q.add(it);
+                    }
                 }
             }
 
+            return false;
         }
-
-        return false;
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        int members = sc.nextInt();
+        int nodes = sc.nextInt();
         Graph g = new Graph();
-        Node membersID[] = new Node[members];
-        for (int i = 0; i < members; i++)
-            membersID[i] = new Node(sc.nextInt());
-        int noOfEdges = sc.nextInt();
-        for (int i = 0; i < noOfEdges; i++) {
-            g.addEdge(new Node(sc.nextInt()), new Node(sc.nextInt()));
+        for (int i = 0; i < nodes; i++) {
+            int u = sc.nextInt();
+            int v = sc.nextInt();
+            g.addEdge(u, v);
         }
+        System.out.println(g.adj);
+        int src = sc.nextInt();
+        int des = sc.nextInt();
 
-        Node src = new Node(sc.nextInt());
-        Node des = new Node(sc.nextInt());
-
-       boolean res = isHeReacheB(src, des);
-       System.out.println("A can reach B --> "+res);
+        System.out.println(g.isReachable(src, des, g));
 
         sc.close();
-
     }
-}
 
-class Node {
-    int val;
-
-    Node(int val) {
-        this.val = val;
-    }
 }
