@@ -1,0 +1,17 @@
+Given a 2D binary matrix A(0-based index) of dimensions NxM.
+ Find the minimum number of steps required to reach from (0,0) to (X, Y).
+
+Note: You can only move left, right, up and down, and only through cells that contain 1.
+
+Input:
+N=3, M=4
+A=[[1,0,0,0], 
+   [1,1,0,1],
+   [0,1,1,1]]
+X=2, Y=3 
+
+Output:
+5
+Explanation:
+The shortest path is as follows:
+(0,0)->(1,0)->(1,1)->(2,1)->(2,2)->(2,3).
