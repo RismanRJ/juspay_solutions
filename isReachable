@@ -1,0 +1,52 @@
+import java.util.*;
+
+public class Main {
+
+    public static boolean isReachable(int start, int end, Map<Integer, List<Integer>> graph, Set<Integer> visited) {
+        if (start == end) return true;
+        if (visited.contains(start)) return false;
+        
+        visited.add(start);
+        
+        List<Integer> neighbors = graph.get(start);
+        if (neighbors == null) return false;
+        
+        for (int neighbor : neighbors) {
+            if (isReachable(neighbor, end, graph, visited)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        int totalMembers = scanner.nextInt();
+        int[] members = new int[totalMembers];
+        for (int i = 0; i < totalMembers; i++) {
+            members[i] = scanner.nextInt();
+        }
+
+        int totalEdges = scanner.nextInt();
+        Map<Integer, List<Integer>> graph = new HashMap<>();
+        
+        for (int i = 0; i < totalEdges; i++) {
+            int follower = scanner.nextInt();
+            int following = scanner.nextInt();
+            graph.putIfAbsent(follower, new ArrayList<>());
+            graph.get(follower).add(following);
+        }
+
+        int start = scanner.nextInt(); // JS newbie A
+        int end = scanner.nextInt(); // React expert B
+
+        Set<Integer> visited = new HashSet<>();
+        boolean result = isReachable(start, end, graph, visited);
+
+        System.out.println(result ? 1 : 0);
+
+        scanner.close();
+    }
+}
