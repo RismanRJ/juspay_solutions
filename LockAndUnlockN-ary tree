@@ -1,0 +1,121 @@
+import java.io.*;
+import java.util.*;
+
+public class GFG {
+
+	static class narytree {
+		boolean isLock;
+		boolean isLockable;
+		narytree parent;
+		List<narytree> children;
+
+		narytree()
+		{
+			isLock = false;
+			isLockable = true;
+			parent = null;
+		}
+
+		narytree(narytree parent)
+		{
+			isLock = false;
+			isLockable = true;
+			this.parent = parent;
+		}
+	}
+
+	static boolean isLock(narytree node)
+	{
+		return node.isLock;
+	}
+
+	static void lock(narytree node)
+	{
+		if (node.isLockable == false) {
+			return;
+		}
+
+		narytree T = node;
+		boolean flag = false;
+		while (T != null) {
+			if (T.isLock == true) {
+				flag = true;
+				break;
+			}
+			T = T.parent;
+		}
+
+		if (flag) {
+			return;
+		}
+		else {
+			T = node;
+			node.isLock = true;
+			// marking isLockable as false for ancestor
+			// nodes.
+			while (T != null) {
+				T.isLockable = false;
+				T = T.parent;
+			}
+		}
+	}
+
+	static void unLock(narytree node)
+	{
+		if (node.isLock == false) {
+			return;
+		}
+
+		narytree T = node;
+		node.isLock = false;
+		// marking isLockable as true for ancestor nodes.
+		while (T != null) {
+			T.isLockable = true;
+			T = T.parent;
+		}
+	}
+
+	public static void main(String[] args)
+	{
+		// Creating N-Array Tree
+		narytree root = new narytree();
+
+		narytree t1 = new narytree(root);
+		narytree t2 = new narytree(root);
+		narytree t3 = new narytree(root);
+
+		root.children = new ArrayList<>();
+		root.children.add(t1);
+		root.children.add(t2);
+		root.children.add(t3);
+
+		narytree t5 = new narytree(root.children.get(0));
+		root.children.get(0).children = new ArrayList<>();
+		root.children.get(0).children.add(t5);
+
+		narytree t4 = new narytree(root.children.get(1));
+		root.children.get(1).children = new ArrayList<>();
+		root.children.get(1).children.add(t4);
+
+		// Locking t4 node.
+		lock(t4);
+		// Checking if the t4 node is locked.
+		System.out.println(
+			"t4 node is locked:"
+			+ ((isLock(t4) == true) ? "true" : "false"));
+
+		lock(t2);
+		System.out.println(
+			"t2 node is locked:"
+			+ ((isLock(t2) == true) ? "true" : "false"));
+		// Unlocking t4 node.
+		unLock(t4);
+		// Now we should be able to lock the tree.
+		lock(t2);
+		System.out.println(
+			"t2 node is locked:"
+			+ ((isLock(t2) == true) ? "true" : "false"));
+	}
+}
+
+// This code is contributed by Snigdha Patil
