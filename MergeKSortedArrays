@@ -1,0 +1,60 @@
+import java.util.PriorityQueue;
+import java.util.Comparator;
+
+class ArrayEntry {
+    int value;
+    int arrayIndex;
+    int elementIndex;
+
+    public ArrayEntry(int value, int arrayIndex, int elementIndex) {
+        this.value = value;
+        this.arrayIndex = arrayIndex;
+        this.elementIndex = elementIndex;
+    }
+}
+
+public class MergeKSortedArrays {
+    public static int[] mergeKSortedArrays(int[][] arrays) {
+        PriorityQueue<ArrayEntry> minHeap = new PriorityQueue<>(new Comparator<ArrayEntry>() {
+            @Override
+            public int compare(ArrayEntry o1, ArrayEntry o2) {
+                return o1.value - o2.value;
+            }
+        });
+
+        int totalSize = 0;
+        for (int i = 0; i < arrays.length; i++) {
+            if (arrays[i].length > 0) {
+                minHeap.add(new ArrayEntry(arrays[i][0], i, 0));
+                totalSize += arrays[i].length;
+            }
+        }
+
+        int[] result = new int[totalSize];
+        int resultIndex = 0;
+
+        while (!minHeap.isEmpty()) {
+            ArrayEntry current = minHeap.poll();
+            result[resultIndex++] = current.value;
+
+            if (current.elementIndex + 1 < arrays[current.arrayIndex].length) {
+                minHeap.add(new ArrayEntry(arrays[current.arrayIndex][current.elementIndex + 1], current.arrayIndex, current.elementIndex + 1));
+            }
+        }
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+        int[][] arrays = {
+            {1, 4, 5},
+            {1, 3, 4},
+            {2, 6}
+        };
+
+        int[] result = mergeKSortedArrays(arrays);
+        for (int num : result) {
+            System.out.print(num + " ");
+        }
+    }
+}
