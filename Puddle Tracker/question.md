@@ -51,6 +51,7 @@ After all drops have fallen, you will receive queries asking whether two specifi
 ## 🧪 Example Test Case
 
 ### Input
+```
 5
 5
 0 0
@@ -62,8 +63,12 @@ After all drops have fallen, you will receive queries asking whether two specifi
 0 0 1 1
 0 0 4 4
 3 4 4 4
+```
 
 ### Output
-true \n
-false \n
-true \n
+```
+true
+false
+true
+
+```
