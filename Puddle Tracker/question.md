@@ -64,6 +64,6 @@ After all drops have fallen, you will receive queries asking whether two specifi
 3 4 4 4
 
 ### Output
-true
-false
-true
+true \n
+false \n
+true \n
