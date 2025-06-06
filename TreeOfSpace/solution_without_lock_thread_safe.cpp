@@ -1,173 +1,171 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-class Node {
+class TreeNode {
 public:
     string name;
     int lockedBy;
-    bool isLocked;
-    set<Node*> descendants;
-    Node* parent;
-    vector<Node*> children;
+    int lockedCount; // replaces isLocked with count-based locking
+    TreeNode* parent;
+    vector<TreeNode*> childs;
+    unordered_set<TreeNode*> lockedDescendents;
 
-    Node(Node* Parent, string Name) {
+    TreeNode(TreeNode* Parent, string Name) {
         name = Name;
         parent = Parent;
         lockedBy = -1;
-        isLocked = false;
+        lockedCount = 0;
     }
 
-    void add(vector<string>& arr) {
-        for (auto child : arr) {
-            children.push_back(new Node(this, child));
+    void addChildren(const vector<string>& arr) {
+        for (const auto& child : arr) {
+            TreeNode* newChild = new TreeNode(this, child);
+            childs.push_back(newChild);
         }
     }
 };
 
 class Tree {
 public:
-    Node* root;
-    unordered_map<string, Node*> mpp;
+    TreeNode* root;
+    unordered_map<string, TreeNode*> nameToNode;
 
-    Tree(string name) {
-        root = new Node(nullptr, name);
+    Tree(string rootName) {
+        root = new TreeNode(nullptr, rootName);
     }
 
-    bool lockNode(string node, int userId) {
-        Node* curr = mpp[node];
+    void buildTree(vector<string>& arr, int m){
+		queue<TreeNode*> q;
+		q.push(root);
+		int k =1;
+		int i;
+		int n = arr.size();
 
-        if (curr->isLocked || !curr->descendants.empty()) return false;
+		while(!q.empty()){
+			TreeNode* curr = q.front();
+			q.pop();
+			nameToNode[curr->name]= curr;
 
-        vector<Node*> visitedAncestors;
-        Node* parentNode = curr->parent;
+			vector<string> tempArr;
 
-        while (parentNode) {
-            if (parentNode->isLocked) {
-                // Rollback previous insertions
-                for (Node* par : visitedAncestors) {
-                    par->descendants.erase(curr);
+
+			for(i=k;i<min(n,k+m);i++){
+				tempArr.push_back(arr[i]);
+			}
+
+			curr->addChildren(tempArr);
+
+
+			for(auto child : curr->childs){
+				q.push(child);
+			}
+
+			k =i;
+		}
+	}
+
+    bool lock(string name, int id) {
+        TreeNode* node = nameToNode[name];
+        if (node->lockedCount > 0 || !node->lockedDescendents.empty()) return false;
+
+        node->lockedCount++;
+        if (node->lockedCount > 1) {
+            node->lockedCount--;
+            return false;
+        }
+
+        TreeNode* parent = node->parent;
+        while (parent) {
+            if (parent->lockedCount > 0 || !node->lockedDescendents.empty()) {
+                node->lockedCount--;
+                TreeNode* rollback = node->parent;
+                while (rollback != parent) {
+                    rollback->lockedDescendents.erase(node);
+                    rollback = rollback->parent;
                 }
                 return false;
             }
-            parentNode->descendants.insert(curr);
-            visitedAncestors.push_back(parentNode);
-            parentNode = parentNode->parent;
+            parent->lockedDescendents.insert(node);
+            parent = parent->parent;
         }
 
-        curr->isLocked = true;
-        curr->lockedBy = userId;
+        node->lockedBy = id;
+        return true;
+    }
+
+    bool unlock(string name, int id) {
+        TreeNode* node = nameToNode[name];
+        if (node->lockedCount == 0 || node->lockedBy != id) return false;
+
+        node->lockedCount = 0;
+        node->lockedBy = -1;
+
+        TreeNode* parent = node->parent;
+        while (parent) {
+            parent->lockedDescendents.erase(node);
+            parent = parent->parent;
+        }
 
         return true;
     }
 
-    bool unlockNode(string node, int userId) {
-        Node* curr = mpp[node];
+    bool upgrade(string name, int id) {
+        TreeNode* node = nameToNode[name];
 
-        if (!curr->isLocked || curr->lockedBy != userId) return false;
+       
+        if (node->lockedCount > 0 || node->lockedDescendents.empty()) return false;
 
-        Node* parentNode = curr->parent;
-
-        while (parentNode) {
-            parentNode->descendants.erase(curr);
-            parentNode = parentNode->parent;
+    
+        for (TreeNode* desc : node->lockedDescendents) {
+            if (desc->lockedBy != id) return false;
         }
 
-        curr->isLocked = false;
-        curr->lockedBy = -1;
-        return true;
-    }
-
-    bool upgradNode(string node, int userId) {
-        Node* curr = mpp[node];
-
-        if (curr->isLocked || curr->descendants.empty()) return false;
-
-        for (auto child : curr->descendants) {
-            if (child->lockedBy != userId) return false;
+        
+        TreeNode* ancestor = node->parent;
+        while (ancestor) {
+            if (ancestor->lockedCount > 0) return false;
+            ancestor = ancestor->parent;
         }
 
-        Node* parentNode = curr->parent;
-        while (parentNode) {
-            if (parentNode->isLocked) return false;
-            parentNode = parentNode->parent;
+        
+        vector<TreeNode*> toUnlock(node->lockedDescendents.begin(), node->lockedDescendents.end());
+        for (TreeNode* desc : toUnlock) {
+            unlock(desc->name, id);
         }
 
-        auto tempSt = curr->descendants;
-        for (auto it : tempSt) {
-            unlockNode(it->name, userId);
-        }
-
-        return lockNode(node, userId);
-    }
-
-    void buildTree(vector<string>& arr, int m) {
-        queue<Node*> q;
-        q.push(root);
-        int k = 1;
-        int i;
-        int n = arr.size();
-
-        while (!q.empty()) {
-            Node* curr = q.front();
-            q.pop();
-            mpp[curr->name] = curr;
-
-            vector<string> tempArr;
-            for (i = k; i < min(n, k + m); i++) {
-                tempArr.push_back(arr[i]);
-            }
-
-            curr->add(tempArr);
-
-            for (auto child : curr->children) {
-                q.push(child);
-            }
-
-            k = i;
-        }
+       
+        return lock(name, id);
     }
 
     bool performOperations(int operationId, string node, int userId) {
-        bool res;
         switch (operationId) {
-        case 1:
-            res = lockNode(node, userId);
-            break;
-        case 2:
-            res = unlockNode(node, userId);
-            break;
-        case 3:
-            res = upgradNode(node, userId);
-            break;
-        default:
-            res = false;
-            break;
+            case 1: return lock(node, userId);
+            case 2: return unlock(node, userId);
+            case 3: return upgrade(node, userId);
+            default: return false;
         }
-        return res;
     }
 };
 
 int main() {
-    int nodes;
-    int child;
-    int queries;
-    cin >> nodes >> child >> queries;
+    int nodes, childrenPerNode, queries;
+    cin >> nodes >> childrenPerNode >> queries;
 
-    vector<string> arr(nodes);
-    for (int i = 0; i < nodes; i++) cin >> arr[i];
+    vector<string> nodeNames(nodes);
+    for (int i = 0; i < nodes; ++i) {
+        cin >> nodeNames[i];
+    }
 
-    Tree* rootTree = new Tree(arr[0]);
-    rootTree->buildTree(arr, child);
+    Tree* tree = new Tree(nodeNames[0]);
+    tree->buildTree(nodeNames, childrenPerNode);
 
     while (queries-- > 0) {
-        int operationId;
+        int op;
         string nodeName;
         int userId;
-        cin >> operationId >> nodeName >> userId;
-        if (rootTree->performOperations(operationId, nodeName, userId)) {
-            cout << "true" << endl;
-        } else {
-            cout << "false" << endl;
-        }
+        cin >> op >> nodeName >> userId;
+        cout << (tree->performOperations(op, nodeName, userId) ? "true" : "false") << endl;
     }
+
+    return 0;
 }
