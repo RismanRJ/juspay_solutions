@@ -137,6 +137,19 @@ public:
             return false;
         }
         curr->lockObj.unlock();
+        
+        Node* parentNode = curr->parent;
+
+		while(parentNode){
+		    parentNode->lockObj.lock();
+			if(parentNode->isLocked) {
+			    parentNode->lockObj.unlock();
+			    return false;
+			}
+			parentNode->lockObj.unlock();
+			
+			parentNode = parentNode->parent;
+		}
 
         vector<Node*> lockedNodes;
         collectLockedDescendants(curr, lockedNodes);
